@@ -88,8 +88,8 @@
     <label for="numberInputEUR">Temel Sayı:</label>
     <input type="number" id="numberInputEUR" placeholder="Örneğin: 100" step="any" />
 
-    <label for="multiplierInput">Çarpılacak Sayı:</label>
-    <input type="number" id="multiplierInput" placeholder="Örneğin: 10" step="any" />
+    <label for="multiplierInput">Çarpılacak Sayı (EUR Kur):</label>
+    <input type="number" id="multiplierInput" placeholder="EUR kuru yükleniyor..." step="any" />
 
     <button onclick="calculateEUR()">Hesapla</button>
 
@@ -108,6 +108,8 @@
   </div>
 
   <script>
+    let eurLowValue = null;
+
     function formatNumber(value) {
       const ceil2 = Math.ceil(value * 100) / 100;
       const twoDecimals = ceil2.toFixed(2);
@@ -118,6 +120,14 @@
       const mode = document.getElementById('mode').value;
       document.getElementById('tlForm').classList.toggle('hidden', mode !== 'tl');
       document.getElementById('eurForm').classList.toggle('hidden', mode !== 'eur');
+
+      if (eurLowValue !== null) {
+        if (mode === 'eur') {
+          document.getElementById('multiplierInput').value = eurLowValue;
+        } else if (mode === 'tl') {
+          document.getElementById('divisorInput').value = eurLowValue;
+        }
+      }
     }
 
     function calculateTL() {
@@ -180,6 +190,17 @@
         .replace(/\s+/g, '-');
       document.getElementById('slugOutput').textContent = slug;
     }
+
+    // EUR kuru verisini al
+    fetch("https://calculator.pffnuv.workers.dev/")
+      .then(res => res.json())
+      .then(data => {
+        eurLowValue = parseFloat(data.EUR_LOW);
+        if (!isNaN(eurLowValue)) {
+          switchMode(); // Sayfa yüklendiğinde doğru input doldurulsun
+        }
+      })
+      .catch(err => console.error("EUR kuru alınamadı:", err));
   </script>
 </body>
 </html>
