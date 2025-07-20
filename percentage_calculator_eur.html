@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gelişmiş Yüzde Hesaplayıcı</title>
   <style>
     body {
@@ -80,13 +80,24 @@
   </div>
 
   <script>
+    // Sayfa yüklendiğinde EUR_LOW değerini çekip otomatik doldur
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('https://www.gamermarkt.com/files/money/currencies_fixed.json')
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.EUR_LOW) {
+            document.getElementById('multiplierInput').value = data.EUR_LOW;
+          }
+        })
+        .catch(error => {
+          console.error('JSON verisi alınamadı:', error);
+        });
+    });
+
     // Ondalık basamak sayısını ikiye indirip her zaman yukarı yuvarlayan format fonksiyonu
     function formatNumber(value) {
-      // Yüzde değerini 2 ondalık basamağa göre her zaman yukarı yuvarla
       const ceil2 = Math.ceil(value * 100) / 100;
-      // İki basamaklı string, nokta ile ayrılmış
       const twoDecimals = ceil2.toFixed(2);
-      // Noktayı virgülle değiştir
       return twoDecimals.replace('.', ',');
     }
 
@@ -103,27 +114,25 @@
         return;
       }
 
-      // Hesaplamalar
       const result1 = (num * multiplier) + ((num * multiplier) * 0.02);
       const result2 = num + (num * 0.02);
       const result3 = (num * multiplier) + ((num * multiplier) * 0.05);
       const result4 = num + (num * 0.05);
 
-      // Sonuçları ekrana yazdırma
       document.getElementById('result1').textContent = `Temel Sayı x Çarpılacak Sayı ve Sonuç + %2 = ${formatNumber(result1)}`;
       document.getElementById('result2').textContent = `Temel Sayı + %2 = ${formatNumber(result2)}`;
       document.getElementById('result3').textContent = `Temel Sayı x Çarpılacak Sayı ve Sonuç + %5 = ${formatNumber(result3)}`;
       document.getElementById('result4').textContent = `Temel Sayı + %5 = ${formatNumber(result4)}`;
     }
-    
+
     function convertText() {
       const input = document.getElementById('textInput').value;
       const slug = input
         .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Türkçe karakterleri sadeleştir
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
         .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u')
-        .replace(/[^a-z0-9\s-]/g, '') // harf ve rakam dışındakileri temizle
+        .replace(/[^a-z0-9\s-]/g, '')
         .trim()
         .replace(/\s+/g, '-');
       document.getElementById('slugOutput').textContent = slug;
