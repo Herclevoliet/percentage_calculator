@@ -15,15 +15,8 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       line-height: 1.6;
     }
-    h1, h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    label, input, button, select {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-    }
+    h1, h2 { text-align: center; margin-bottom: 20px; }
+    label, input, button, select { display: block; width: 100%; margin-bottom: 10px; }
     input, select {
       padding: 8px;
       font-size: 1rem;
@@ -38,11 +31,8 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      margin-top: 10px;
     }
-    button:hover {
-      background: #218838;
-    }
+    button:hover { background: #218838; }
     p {
       font-size: 1.1rem;
       background: #fff;
@@ -50,12 +40,7 @@
       border-radius: 4px;
       border: 1px solid #e0e0e0;
     }
-    .section {
-      margin-top: 40px;
-    }
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -70,10 +55,10 @@
   <!-- TL Formu -->
   <div id="tlForm">
     <label for="numberInputTL">Temel Sayı:</label>
-    <input type="number" id="numberInputTL" placeholder="Örneğin: 100" step="any" />
+    <input type="number" id="numberInputTL" step="any" />
 
     <label for="divisorInput">Bölecek Sayı:</label>
-    <input type="number" id="divisorInput" placeholder="Örneğin: 10" step="any" />
+    <input type="number" id="divisorInput" step="any" />
 
     <button onclick="calculateTL()">Hesapla</button>
 
@@ -86,10 +71,10 @@
   <!-- Euro Formu -->
   <div id="eurForm" class="hidden">
     <label for="numberInputEUR">Temel Sayı:</label>
-    <input type="number" id="numberInputEUR" placeholder="Örneğin: 100" step="any" />
+    <input type="number" id="numberInputEUR" step="any" />
 
     <label for="multiplierInput">Çarpılacak Sayı (EUR Kur):</label>
-    <input type="number" id="multiplierInput" placeholder="EUR kuru yükleniyor..." step="any" />
+    <input type="number" id="multiplierInput" step="any" />
 
     <button onclick="calculateEUR()">Hesapla</button>
 
@@ -99,106 +84,79 @@
     <p id="result4EUR"></p>
   </div>
 
-  <div class="section">
-    <h2>Yazıyı Linke Dönüştür</h2>
-    <label for="textInput">Yazı Girin:</label>
-    <input type="text" id="textInput" placeholder="Örneğin: Watcher of Realms" />
-    <button onclick="convertText()">Dönüştür</button>
-    <p id="slugOutput"></p>
-  </div>
-
   <script>
     let eurLowValue = null;
 
     function formatNumber(value) {
-      const ceil2 = Math.ceil(value * 100) / 100;
-      const twoDecimals = ceil2.toFixed(2);
-      return twoDecimals.replace('.', ',');
+      return (Math.ceil(value * 100) / 100).toFixed(2).replace('.', ',');
     }
 
     function switchMode() {
       const mode = document.getElementById('mode').value;
       document.getElementById('tlForm').classList.toggle('hidden', mode !== 'tl');
       document.getElementById('eurForm').classList.toggle('hidden', mode !== 'eur');
-
       if (eurLowValue !== null) {
-        if (mode === 'eur') {
-          document.getElementById('multiplierInput').value = eurLowValue;
-        } else if (mode === 'tl') {
-          document.getElementById('divisorInput').value = eurLowValue;
-        }
+        document.getElementById(mode === 'eur' ? 'multiplierInput' : 'divisorInput').value = eurLowValue;
       }
     }
 
     function calculateTL() {
       const num = parseFloat(document.getElementById('numberInputTL').value);
       const divisor = parseFloat(document.getElementById('divisorInput').value);
-
-      if (isNaN(num)) {
-        alert('Lütfen geçerli bir temel sayı girin.');
-        return;
-      }
-      if (isNaN(divisor) || divisor === 0) {
-        alert('Lütfen 0 olmayan geçerli bir bölecek sayı girin.');
-        return;
-      }
+      if (isNaN(num) || isNaN(divisor) || divisor === 0) return;
 
       const result1 = num + num * 0.02;
       const result2 = result1 + result1 * 0.05;
       const quotient1 = result1 / divisor;
       const quotient2 = result2 / divisor;
 
-      document.getElementById('result1TL').textContent = `Sayı + %2 = ${formatNumber(result1)}`;
-      document.getElementById('quotient1').textContent = `(Sayı + %2) / ${formatNumber(divisor)} = ${formatNumber(quotient1)}`;
-      document.getElementById('result2TL').textContent = `Sonuç + %5 = ${formatNumber(result2)}`;
-      document.getElementById('quotient2').textContent = `(Sonuç + %5) / ${formatNumber(divisor)} = ${formatNumber(quotient2)}`;
+      document.getElementById('result1TL').textContent = `+%2 = ${formatNumber(result1)}`;
+      document.getElementById('quotient1').textContent = `/% = ${formatNumber(quotient1)}`;
+      document.getElementById('result2TL').textContent = `+%5 = ${formatNumber(result2)}`;
+      document.getElementById('quotient2').textContent = `/% = ${formatNumber(quotient2)}`;
+
+      window.postMessage({
+        source: 'percentage_calculator',
+        currency: 'TL',
+        data: {
+          ucret_try: result2,
+          maliyet: result1,
+          discounted_from_try: num
+        }
+      }, '*');
     }
 
     function calculateEUR() {
       const num = parseFloat(document.getElementById('numberInputEUR').value);
       const multiplier = parseFloat(document.getElementById('multiplierInput').value);
-
-      if (isNaN(num)) {
-        alert('Lütfen geçerli bir temel sayı girin.');
-        return;
-      }
-      if (isNaN(multiplier)) {
-        alert('Lütfen geçerli bir çarpılacak sayı girin.');
-        return;
-      }
+      if (isNaN(num) || isNaN(multiplier)) return;
 
       const result1 = (num * multiplier) + ((num * multiplier) * 0.02);
       const result2 = num + (num * 0.02);
       const result3 = (num * multiplier) + ((num * multiplier) * 0.05);
       const result4 = num + (num * 0.05);
 
-      document.getElementById('result1EUR').textContent = `Temel Sayı x Çarpılacak Sayı ve Sonuç + %2 = ${formatNumber(result1)}`;
-      document.getElementById('result2EUR').textContent = `Temel Sayı + %2 = ${formatNumber(result2)}`;
-      document.getElementById('result3EUR').textContent = `Temel Sayı x Çarpılacak Sayı ve Sonuç + %5 = ${formatNumber(result3)}`;
-      document.getElementById('result4EUR').textContent = `Temel Sayı + %5 = ${formatNumber(result4)}`;
+      document.getElementById('result1EUR').textContent = `Sonuç + %2 = ${formatNumber(result1)}`;
+      document.getElementById('result2EUR').textContent = `+%2 = ${formatNumber(result2)}`;
+      document.getElementById('result3EUR').textContent = `Sonuç + %5 = ${formatNumber(result3)}`;
+      document.getElementById('result4EUR').textContent = `+%5 = ${formatNumber(result4)}`;
+
+      window.postMessage({
+        source: 'percentage_calculator',
+        currency: 'EUR',
+        data: {
+          ucret_eur: result3,
+          maliyet: result1,
+          discounted_from_eur: num
+        }
+      }, '*');
     }
 
-    function convertText() {
-      const input = document.getElementById('textInput').value;
-      const slug = input
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
-        .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-      document.getElementById('slugOutput').textContent = slug;
-    }
-
-    // EUR kuru verisini al
     fetch("https://calculator.pffnuv.workers.dev/")
       .then(res => res.json())
       .then(data => {
         eurLowValue = parseFloat(data.EUR_LOW);
-        if (!isNaN(eurLowValue)) {
-          switchMode(); // Sayfa yüklendiğinde doğru input doldurulsun
-        }
+        if (!isNaN(eurLowValue)) switchMode();
       })
       .catch(err => console.error("EUR kuru alınamadı:", err));
   </script>
