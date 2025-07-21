@@ -100,31 +100,41 @@
       }
     }
 
-    function calculateTL() {
-      const num = parseFloat(document.getElementById('numberInputTL').value);
-      const divisor = parseFloat(document.getElementById('divisorInput').value);
-      if (isNaN(num) || isNaN(divisor) || divisor === 0) return;
+function calculateTL() {
+  const num = parseFloat(document.getElementById('numberInputTL').value);
+  const divisor = parseFloat(document.getElementById('divisorInput').value);
 
-      const result1 = num + num * 0.02;
-      const result2 = result1 + result1 * 0.05;
-      const quotient1 = result1 / divisor;
-      const quotient2 = result2 / divisor;
+  if (isNaN(num)) {
+    alert('Lütfen geçerli bir temel sayı girin.');
+    return;
+  }
+  if (isNaN(divisor) || divisor === 0) {
+    alert('Lütfen 0 olmayan geçerli bir bölecek sayı girin.');
+    return;
+  }
 
-      document.getElementById('result1TL').textContent = `+%2 = ${formatNumber(result1)}`;
-      document.getElementById('quotient1').textContent = `/% = ${formatNumber(quotient1)}`;
-      document.getElementById('result2TL').textContent = `+%5 = ${formatNumber(result2)}`;
-      document.getElementById('quotient2').textContent = `/% = ${formatNumber(quotient2)}`;
+  const result1 = num + num * 0.02;
+  const result2 = result1 + result1 * 0.05;
+  const quotient1 = result1 / divisor;
+  const quotient2 = result2 / divisor;
 
-      window.postMessage({
-        source: 'percentage_calculator',
-        currency: 'TL',
-        data: {
-          ucret_try: result2,
-          maliyet: result1,
-          discounted_from_try: num
-        }
-      }, '*');
+  document.getElementById('result1TL').textContent = `Sayı + %2 = ${formatNumber(result1)}`;
+  document.getElementById('quotient1').textContent = `(Sayı + %2) / ${formatNumber(divisor)} = ${formatNumber(quotient1)}`;
+  document.getElementById('result2TL').textContent = `Sonuç + %5 = ${formatNumber(result2)}`;
+  document.getElementById('quotient2').textContent = `(Sonuç + %5) / ${formatNumber(divisor)} = ${formatNumber(quotient2)}`;
+
+  // ---- Olayı tetikle ----
+  const popupEvent = new CustomEvent("hesaplamaTamamlandi", {
+    detail: {
+      try_1: formatNumber(result1),
+      try_2: formatNumber(result2),
+      try_1_divided: formatNumber(quotient1),
+      try_2_divided: formatNumber(quotient2)
     }
+  });
+  window.dispatchEvent(popupEvent);
+}
+
 
     function calculateEUR() {
       const num = parseFloat(document.getElementById('numberInputEUR').value);
